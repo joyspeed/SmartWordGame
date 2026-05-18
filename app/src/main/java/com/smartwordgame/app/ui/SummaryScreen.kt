@@ -186,7 +186,8 @@ fun SummaryScreen(
                                     Text(
                                         text = explanation,
                                         style = MaterialTheme.typography.labelLarge,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        softWrap = true
                                     )
                                 }
                             }

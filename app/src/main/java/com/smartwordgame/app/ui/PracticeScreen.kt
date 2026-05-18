@@ -225,7 +225,8 @@ private fun PracticeWordCard(practiceWord: PracticeWordEntry) {
             Text(
                 text = practiceWord.item.explanation,
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                softWrap = true
             )
             Spacer(modifier = Modifier.height(12.dp))
             DifficultyStars(score = practiceWord.score)

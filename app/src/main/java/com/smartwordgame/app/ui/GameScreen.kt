@@ -217,10 +217,13 @@ private fun GamePlayingContent(
                 ) {
                     Text(
                         text = option,
-                        modifier = Modifier.padding(vertical = 8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        softWrap = true
                     )
                 }
             }

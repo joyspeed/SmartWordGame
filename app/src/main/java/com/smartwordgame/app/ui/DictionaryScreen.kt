@@ -271,7 +271,8 @@ private fun DictionaryWordCard(
                     text = item.explanation,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Start
+                    textAlign = TextAlign.Start,
+                    softWrap = true
                 )
 
                 if (isWeak) {
