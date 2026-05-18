@@ -29,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -43,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
@@ -52,6 +54,7 @@ import androidx.compose.ui.unit.sp
 import com.smartwordgame.app.data.WeakWordsManager
 import com.smartwordgame.app.data.WordItem
 import com.smartwordgame.app.data.WordRepository
+import com.smartwordgame.app.data.stripNiqqud
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,6 +68,8 @@ fun PracticeScreen(
         val wordsById = remember(context) { WordRepository.loadWords(context).associateBy(WordItem::id) }
         var refreshTrigger by remember { mutableIntStateOf(0) }
         var showResetDialog by remember { mutableStateOf(false) }
+        var resetCode by remember { mutableStateOf("") }
+        var resetCodeError by remember { mutableStateOf(false) }
 
         val practiceWords = remember(refreshTrigger, wordsById) {
             weakWordsManager.getWeakWords()
@@ -72,7 +77,7 @@ fun PracticeScreen(
                 .mapNotNull { (wordId, score) ->
                     wordsById[wordId]?.let { PracticeWordEntry(item = it, score = score) }
                 }
-                .sortedWith(compareByDescending<PracticeWordEntry> { it.score }.thenBy { it.item.word })
+                .sortedWith(compareByDescending<PracticeWordEntry> { it.score }.thenBy { it.item.word.stripNiqqud() })
         }
 
         Scaffold(
@@ -118,10 +123,14 @@ fun PracticeScreen(
                             .height(52.dp),
                         enabled = practiceWords.isNotEmpty()
                     ) {
-                        Text(text = "תרגל עכשיו", fontSize = 18.sp)
+                        Text(text = "תרגל מילים קשות", fontSize = 18.sp)
                     }
                     OutlinedButton(
-                        onClick = { showResetDialog = true },
+                        onClick = {
+                            resetCode = ""
+                            resetCodeError = false
+                            showResetDialog = true
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(52.dp)
@@ -151,7 +160,7 @@ fun PracticeScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "⭐ !כל הכבוד! אין מילים לתרגול",
+                        text = "🐻 כל הכבוד! אין מילים לתרגול",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Medium
@@ -177,23 +186,61 @@ fun PracticeScreen(
 
         if (showResetDialog) {
             AlertDialog(
-                onDismissRequest = { showResetDialog = false },
+                onDismissRequest = {
+                    resetCode = ""
+                    resetCodeError = false
+                    showResetDialog = false
+                },
                 title = { Text(text = "איפוס התקדמות") },
-                text = { Text(text = "בטוח שברצונך לאפס את כל ההתקדמות?") },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = "כדי לאפס את כל ההתקדמות, הזן את הקוד המתאים.")
+                        OutlinedTextField(
+                            value = resetCode,
+                            onValueChange = {
+                                resetCode = it
+                                resetCodeError = false
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text("הכנס קוד: 0000") },
+                            singleLine = true,
+                            isError = resetCodeError
+                        )
+                        if (resetCodeError) {
+                            Text(
+                                text = "קוד שגוי",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        }
+                    }
+                },
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            weakWordsManager.resetAll()
-                            refreshTrigger++
-                            showResetDialog = false
+                            if (resetCode == "0000") {
+                                weakWordsManager.resetAll()
+                                refreshTrigger++
+                                resetCode = ""
+                                resetCodeError = false
+                                showResetDialog = false
+                            } else {
+                                resetCodeError = true
+                            }
                         }
                     ) {
-                        Text(text = "כן", color = MaterialTheme.colorScheme.error)
+                        Text(text = "אפס", color = MaterialTheme.colorScheme.error)
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showResetDialog = false }) {
-                        Text(text = "לא")
+                    TextButton(
+                        onClick = {
+                            resetCode = ""
+                            resetCodeError = false
+                            showResetDialog = false
+                        }
+                    ) {
+                        Text(text = "ביטול")
                     }
                 }
             )
@@ -203,9 +250,12 @@ fun PracticeScreen(
 
 @Composable
 private fun PracticeWordCard(practiceWord: PracticeWordEntry) {
+    val cardColor = practiceDifficultyColor(practiceWord.score)
+    val wordPrefix = if (practiceWord.score >= 3) "🔥 " else ""
+
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(containerColor = cardColor),
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -215,7 +265,7 @@ private fun PracticeWordCard(practiceWord: PracticeWordEntry) {
                 .padding(horizontal = 18.dp, vertical = 16.dp)
         ) {
             Text(
-                text = practiceWord.item.word,
+                text = wordPrefix + practiceWord.item.word,
                 style = MaterialTheme.typography.bodyLarge,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
@@ -255,6 +305,14 @@ private fun DifficultyStars(score: Int) {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
+}
+
+@Composable
+private fun practiceDifficultyColor(score: Int): Color = when (score.coerceIn(0, 3)) {
+    3 -> Color(0xFFFFEBEE)
+    2 -> Color(0xFFFFF3E0)
+    1 -> Color(0xFFFFFDE7)
+    else -> MaterialTheme.colorScheme.surface
 }
 
 private data class PracticeWordEntry(

@@ -2,14 +2,13 @@ package com.smartwordgame.app.ui
 
 import android.content.Context
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -17,30 +16,32 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -48,19 +49,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.smartwordgame.app.data.Difficulty
 import com.smartwordgame.app.data.RoundConfig
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onStartGame: (RoundConfig) -> Unit,
     onNavigateToPractice: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToDictionary: () -> Unit,
-    onNavigateToActivitySummary: () -> Unit
+    onNavigateToActivitySummary: () -> Unit,
+    onNavigateToAbout: () -> Unit
 ) {
     val context = LocalContext.current
     val preferences = remember(context) {
@@ -71,202 +74,191 @@ fun HomeScreen(
     }
     var selectedQuestionCount by rememberSaveable { mutableIntStateOf(10) }
     var selectedDifficulty by rememberSaveable { mutableStateOf(Difficulty.MEDIUM) }
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
-    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 20.dp, vertical = 24.dp)
-                    .navigationBarsPadding(),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                Text(
-                    text = "משחק מילים",
-                    modifier = Modifier.fillMaxWidth(),
-                    style = MaterialTheme.typography.displayMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.ExtraBold,
-                    textAlign = TextAlign.Center
-                )
-
-                SelectorSection(title = "כמה שאלות בסיבוב?") {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        listOf(10, 20, 30).forEach { count ->
-                            FilterChip(
-                                selected = selectedQuestionCount == count,
-                                onClick = { selectedQuestionCount = count },
-                                label = {
-                                    Text(
-                                        text = count.toString(),
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                },
-                                modifier = Modifier
-                                    .heightIn(min = 48.dp)
-                                    .widthIn(min = 88.dp),
-                                shape = RoundedCornerShape(18.dp),
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = MaterialTheme.colorScheme.secondary,
-                                    selectedLabelColor = MaterialTheme.colorScheme.onSecondary
-                                )
-                            )
-                        }
-                    }
-                }
-
-                SelectorSection(title = "רמת קושי") {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        DifficultyOptionCard(
-                            title = "קל",
-                            subtitle = "(דקה לשאלה)",
-                            selected = selectedDifficulty == Difficulty.EASY,
-                            onClick = { selectedDifficulty = Difficulty.EASY }
-                        )
-                        DifficultyOptionCard(
-                            title = "בינוני",
-                            subtitle = "(30 שניות לשאלה)",
-                            selected = selectedDifficulty == Difficulty.MEDIUM,
-                            onClick = { selectedDifficulty = Difficulty.MEDIUM }
-                        )
-                        DifficultyOptionCard(
-                            title = "קשה",
-                            subtitle = "(15 שניות לשאלה)",
-                            selected = selectedDifficulty == Difficulty.HARD,
-                            onClick = { selectedDifficulty = Difficulty.HARD }
-                        )
-                    }
-                }
-
-                Button(
-                    onClick = {
-                        onStartGame(
-                            RoundConfig(
-                                questionCount = selectedQuestionCount,
-                                difficulty = selectedDifficulty,
-                                smartPractice = smartPractice
-                            )
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 56.dp),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                ) {
-                    Text(
-                        text = "התחל",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                Surface(
-                    shape = RoundedCornerShape(28.dp),
-                    color = MaterialTheme.colorScheme.surface,
-                    tonalElevation = 4.dp,
-                    shadowElevation = 4.dp,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 14.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Text(
-                            text = "עוד דברים שכיף לגלות",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-
-                        NavigationMenuButton(
-                            text = "מילים לתרגול",
-                            icon = Icons.Filled.List,
-                            onClick = onNavigateToPractice
-                        )
-
-                        NavigationMenuButton(
-                            text = "מילון מילים",
-                            icon = Icons.Filled.Search,
-                            onClick = onNavigateToDictionary
-                        )
-
-                        NavigationMenuButton(
-                            text = "סיכום 30 ימים",
-                            icon = Icons.Filled.DateRange,
-                            onClick = onNavigateToActivitySummary
-                        )
-
-                        IconButton(
-                            onClick = onNavigateToSettings,
-                            modifier = Modifier
-                                .align(Alignment.CenterHorizontally)
-                                .size(56.dp)
-                                .background(
-                                    color = MaterialTheme.colorScheme.secondaryContainer,
-                                    shape = CircleShape
-                                )
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Settings,
-                                contentDescription = "הגדרות",
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(30.dp)
-                            )
-                        }
-                    }
-                }
-            }
+    fun closeDrawer(action: (() -> Unit)? = null) {
+        scope.launch {
+            drawerState.close()
+            action?.invoke()
         }
     }
-}
 
-@Composable
-private fun NavigationMenuButton(
-    text: String,
-    icon: ImageVector,
-    onClick: () -> Unit
-) {
-    OutlinedButton(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 52.dp),
-        shape = RoundedCornerShape(18.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+        ModalNavigationDrawer(
+            drawerState = drawerState,
+            drawerContent = {
+                ModalDrawerSheet(
+                    drawerContainerColor = MaterialTheme.colorScheme.surface,
+                    drawerContentColor = MaterialTheme.colorScheme.onSurface
+                ) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "תפריט",
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    NavigationDrawerItem(
+                        label = { Text("🎮 משחק") },
+                        selected = true,
+                        onClick = { closeDrawer() },
+                        modifier = Modifier.padding(horizontal = 12.dp)
+                    )
+                    NavigationDrawerItem(
+                        label = { Text("💪 מילים קשות") },
+                        selected = false,
+                        onClick = { closeDrawer(onNavigateToPractice) },
+                        modifier = Modifier.padding(horizontal = 12.dp)
+                    )
+                    NavigationDrawerItem(
+                        label = { Text("📚 מילון מילים") },
+                        selected = false,
+                        onClick = { closeDrawer(onNavigateToDictionary) },
+                        modifier = Modifier.padding(horizontal = 12.dp)
+                    )
+                    NavigationDrawerItem(
+                        label = { Text("📊 סיכום 30 ימים") },
+                        selected = false,
+                        onClick = { closeDrawer(onNavigateToActivitySummary) },
+                        modifier = Modifier.padding(horizontal = 12.dp)
+                    )
+                    NavigationDrawerItem(
+                        label = { Text("⚙️ הגדרות") },
+                        selected = false,
+                        onClick = { closeDrawer(onNavigateToSettings) },
+                        modifier = Modifier.padding(horizontal = 12.dp)
+                    )
+                    NavigationDrawerItem(
+                        label = { Text("ℹ️ אודות") },
+                        selected = false,
+                        onClick = { closeDrawer(onNavigateToAbout) },
+                        modifier = Modifier.padding(horizontal = 12.dp)
+                    )
+                }
+            }
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(22.dp)
-            )
-            Text(
-                text = text,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(start = 10.dp)
-            )
+            Scaffold(
+                containerColor = MaterialTheme.colorScheme.background,
+                topBar = {
+                    TopAppBar(
+                        title = {
+                            Text(
+                                text = "משחק מילים",
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.ExtraBold
+                            )
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = {
+                                scope.launch { drawerState.open() }
+                            }) {
+                                Text(
+                                    text = "☰",
+                                    color = MaterialTheme.colorScheme.primary,
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = MaterialTheme.colorScheme.background,
+                            titleContentColor = MaterialTheme.colorScheme.primary,
+                            navigationIconContentColor = MaterialTheme.colorScheme.primary
+                        )
+                    )
+                }
+            ) { innerPadding ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .padding(horizontal = 20.dp, vertical = 24.dp)
+                        .navigationBarsPadding(),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    SelectorSection(title = "כמה שאלות בסיבוב?") {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            listOf(10, 20, 30).forEach { count ->
+                                FilterChip(
+                                    selected = selectedQuestionCount == count,
+                                    onClick = { selectedQuestionCount = count },
+                                    label = {
+                                        Text(
+                                            text = count.toString(),
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    },
+                                    modifier = Modifier
+                                        .heightIn(min = 48.dp)
+                                        .widthIn(min = 88.dp),
+                                    shape = RoundedCornerShape(18.dp),
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.secondary,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onSecondary
+                                    )
+                                )
+                            }
+                        }
+                    }
+
+                    SelectorSection(title = "רמת קושי") {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            DifficultyOptionCard(
+                                title = "קל",
+                                subtitle = "(דקה לשאלה)",
+                                selected = selectedDifficulty == Difficulty.EASY,
+                                onClick = { selectedDifficulty = Difficulty.EASY }
+                            )
+                            DifficultyOptionCard(
+                                title = "בינוני",
+                                subtitle = "(30 שניות לשאלה)",
+                                selected = selectedDifficulty == Difficulty.MEDIUM,
+                                onClick = { selectedDifficulty = Difficulty.MEDIUM }
+                            )
+                            DifficultyOptionCard(
+                                title = "קשה",
+                                subtitle = "(15 שניות לשאלה)",
+                                selected = selectedDifficulty == Difficulty.HARD,
+                                onClick = { selectedDifficulty = Difficulty.HARD }
+                            )
+                        }
+                    }
+
+                    Button(
+                        onClick = {
+                            onStartGame(
+                                RoundConfig(
+                                    questionCount = selectedQuestionCount,
+                                    difficulty = selectedDifficulty,
+                                    smartPractice = smartPractice
+                                )
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 56.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
+                    ) {
+                        Text(
+                            text = "התחל",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+            }
         }
     }
 }

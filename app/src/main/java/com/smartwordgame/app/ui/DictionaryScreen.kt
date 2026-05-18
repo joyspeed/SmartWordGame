@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import com.smartwordgame.app.data.WeakWordsManager
 import com.smartwordgame.app.data.WordItem
 import com.smartwordgame.app.data.WordRepository
+import com.smartwordgame.app.data.stripNiqqud
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,10 +70,10 @@ fun DictionaryScreen(
             if (sortByDifficulty) {
                 words.sortedWith(
                     compareByDescending<WordItem> { weakScores[it.id] ?: 0 }
-                        .thenBy { it.word }
+                        .thenBy { it.word.stripNiqqud() }
                 )
             } else {
-                words.sortedBy { it.word }
+                words.sortedBy { it.word.stripNiqqud() }
             }
         }
 
@@ -206,95 +207,88 @@ private fun DictionaryWordCard(
     item: WordItem,
     weakScore: Int
 ) {
-    val isWeak = weakScore > 0
-    val accentColor = MaterialTheme.colorScheme.tertiary
-    val weakContainerColor = Color(0xFFFFF3D6)
-    val cardColor = if (isWeak) weakContainerColor else MaterialTheme.colorScheme.surface
+    val indicator = dictionaryWeakIndicator(weakScore)
+    val containerColor = indicator?.containerColor ?: MaterialTheme.colorScheme.surface
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = cardColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (isWeak) 5.dp else 2.dp)
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (weakScore > 0) 5.dp else 2.dp)
     ) {
-        Box(modifier = Modifier.fillMaxWidth()) {
-            if (isWeak) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(vertical = 10.dp, horizontal = 10.dp)
-                        .width(6.dp)
-                        .height(72.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(accentColor.copy(alpha = 0.85f))
-                )
-            }
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 18.dp, end = 28.dp, top = 16.dp, bottom = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 18.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = item.word,
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.ExtraBold,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    if (isWeak) {
-                        Row(
-                            modifier = Modifier.padding(start = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(2.dp)
-                        ) {
-                            repeat(weakScore.coerceIn(1, 3)) {
-                                Icon(
-                                    imageVector = Icons.Filled.Star,
-                                    contentDescription = null,
-                                    tint = accentColor,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-
                 Text(
-                    text = item.explanation,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Start,
-                    softWrap = true
+                    text = item.word,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.ExtraBold,
+                    modifier = Modifier.weight(1f)
                 )
 
-                if (isWeak) {
+                if (indicator != null) {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier = Modifier.padding(start = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Star,
-                            contentDescription = null,
-                            tint = accentColor,
-                            modifier = Modifier.size(16.dp)
+                        Box(
+                            modifier = Modifier
+                                .size(10.dp)
+                                .clip(RoundedCornerShape(percent = 50))
+                                .background(indicator.dotColor)
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "זקוקה לעוד תרגול",
+                            text = indicator.symbols,
                             style = MaterialTheme.typography.labelLarge,
-                            color = accentColor,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
             }
+
+            Text(
+                text = item.explanation,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Start,
+                softWrap = true
+            )
         }
     }
+}
+
+private data class DictionaryWeakIndicator(
+    val containerColor: Color,
+    val dotColor: Color,
+    val symbols: String
+)
+
+private fun dictionaryWeakIndicator(score: Int): DictionaryWeakIndicator? = when (score.coerceIn(0, 3)) {
+    3 -> DictionaryWeakIndicator(
+        containerColor = Color(0xFFFFEBEE),
+        dotColor = Color(0xFFD32F2F),
+        symbols = "🔥"
+    )
+    2 -> DictionaryWeakIndicator(
+        containerColor = Color(0xFFFFF3E0),
+        dotColor = Color(0xFFEF6C00),
+        symbols = "⭐⭐"
+    )
+    1 -> DictionaryWeakIndicator(
+        containerColor = Color(0xFFFFFDE7),
+        dotColor = Color(0xFFF9A825),
+        symbols = "⭐"
+    )
+    else -> null
 }

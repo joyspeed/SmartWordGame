@@ -8,21 +8,27 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.platform.LocalLayoutDirection
 
 private val SmartWordGameColorScheme = lightColorScheme(
-    primary = BrightBlue,
+    primary = SkyBlue,
     onPrimary = White,
-    secondary = BrightOrange,
+    primaryContainer = SkyBlue.copy(alpha = 0.15f),
+    onPrimaryContainer = StrongBlue,
+    secondary = Orange,
     onSecondary = White,
-    tertiary = BrightGreen,
+    secondaryContainer = Orange.copy(alpha = 0.15f),
+    onSecondaryContainer = DarkText,
+    tertiary = SuccessGreen,
     onTertiary = White,
-    error = SoftRed,
+    tertiaryContainer = SuccessGreen.copy(alpha = 0.15f),
+    onTertiaryContainer = DarkText,
+    error = ErrorRed,
     onError = White,
-    background = WarmWhite,
+    background = SoftCream,
     onBackground = DarkText,
     surface = White,
     onSurface = DarkText,
-    surfaceVariant = WarmWhite,
-    onSurfaceVariant = DarkText,
-    outline = BrightBlue
+    surfaceVariant = SoftCream,
+    onSurfaceVariant = SecondaryText,
+    outline = SkyBlue
 )
 
 @Composable

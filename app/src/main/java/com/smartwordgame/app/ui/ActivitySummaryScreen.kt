@@ -77,8 +77,9 @@ private fun ActivitySummaryContent(
     } else {
         0
     }
-    val maxQuestions = dailyStats.maxOfOrNull { it.questionsAnswered } ?: 0
-    val noActivity = totalQuestions == 0
+    val activeDays = dailyStats.filter { it.questionsAnswered > 0 }
+    val maxQuestions = activeDays.maxOfOrNull { it.questionsAnswered } ?: 0
+    val noActivity = activeDays.isEmpty()
     val dateFormatter = remember { DateTimeFormatter.ofPattern("dd/MM", Locale("he")) }
 
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
@@ -138,7 +139,7 @@ private fun ActivitySummaryContent(
                             shadowElevation = 1.dp
                         ) {
                             Text(
-                                text = "אין פעילות עדיין. שחקו כדי לראות את ההתקדמות! 🎮",
+                                text = "🐻 אין פעילות עדיין. שחקו כדי לראות את ההתקדמות! 🎮",
                                 modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -150,7 +151,7 @@ private fun ActivitySummaryContent(
                 }
 
                 items(
-                    items = dailyStats,
+                    items = activeDays,
                     key = { it.date.toString() }
                 ) { stats ->
                     DayStatsCard(
@@ -226,31 +227,28 @@ private fun DayStatsCard(
     maxQuestions: Int,
     dateFormatter: DateTimeFormatter
 ) {
-    val hasActivity = stats.questionsAnswered > 0
     val totalRatio = if (maxQuestions > 0) {
         stats.questionsAnswered.toFloat() / maxQuestions.toFloat()
     } else {
         0f
     }
-    val correctRatio = if (stats.questionsAnswered > 0) {
+    val accuracyRatio = if (stats.questionsAnswered > 0) {
         stats.correctAnswers.toFloat() / stats.questionsAnswered.toFloat()
     } else {
         0f
     }
-    val correctColor = Color(0xFF4CAF50)
-    val incorrectColor = MaterialTheme.colorScheme.tertiaryContainer
-    val emptyBarColor = MaterialTheme.colorScheme.surfaceVariant
-    val cardColor = if (hasActivity) {
-        MaterialTheme.colorScheme.surface
-    } else {
-        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
+    val accuracyPercent = (accuracyRatio * 100).roundToInt()
+    val barColor = when {
+        accuracyPercent >= 80 -> Color(0xFF66BB6A)
+        accuracyPercent >= 50 -> Color(0xFFFF9800)
+        else -> Color(0xFFEF5350)
     }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = cardColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (hasActivity) 3.dp else 1.dp)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
         Row(
             modifier = Modifier
@@ -265,7 +263,7 @@ private fun DayStatsCard(
                 Text(
                     text = stats.date.format(dateFormatter),
                     style = MaterialTheme.typography.titleMedium,
-                    color = if (hasActivity) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.ExtraBold
                 )
             }
@@ -277,13 +275,9 @@ private fun DayStatsCard(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = if (hasActivity) {
-                        "${stats.questionsAnswered} שאלות, ${stats.correctAnswers} נכונות"
-                    } else {
-                        "0 שאלות, 0 נכונות"
-                    },
+                    text = "${stats.questionsAnswered} שאלות, ${stats.correctAnswers} נכונות",
                     style = MaterialTheme.typography.titleMedium,
-                    color = if (hasActivity) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold
                 )
 
@@ -292,35 +286,15 @@ private fun DayStatsCard(
                         .fillMaxWidth()
                         .height(18.dp)
                         .clip(RoundedCornerShape(999.dp))
-                        .background(emptyBarColor),
-                    contentAlignment = Alignment.Center
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                 ) {
-                    if (hasActivity) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth(totalRatio)
-                                .fillMaxHeight()
-                                .clip(RoundedCornerShape(999.dp))
-                                .background(incorrectColor)
-                        ) {
-                            if (stats.correctAnswers > 0) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth(correctRatio)
-                                        .fillMaxHeight()
-                                        .clip(RoundedCornerShape(999.dp))
-                                        .background(correctColor)
-                                )
-                            }
-                        }
-                    } else {
-                        Text(
-                            text = "—",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(totalRatio)
+                            .fillMaxHeight()
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(barColor)
+                    )
                 }
             }
         }

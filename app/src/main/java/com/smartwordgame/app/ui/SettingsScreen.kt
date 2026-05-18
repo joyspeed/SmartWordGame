@@ -3,19 +3,37 @@ package com.smartwordgame.app.ui
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -26,12 +44,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.smartwordgame.app.data.SettingsManager
 import com.smartwordgame.app.data.WeakWordsManager
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit
@@ -43,132 +64,267 @@ fun SettingsScreen(
 
         var soundEnabled by remember { mutableStateOf(settingsManager.soundEnabled) }
         var smartPracticeEnabled by remember { mutableStateOf(settingsManager.smartPracticeEnabled) }
-        var showResetConfirmation by remember { mutableStateOf(false) }
+        var showResetDialog by remember { mutableStateOf(false) }
+        var resetCode by remember { mutableStateOf("") }
+        var showWrongCode by remember { mutableStateOf(false) }
 
-        if (showResetConfirmation) {
+        if (showResetDialog) {
             AlertDialog(
-                onDismissRequest = { showResetConfirmation = false },
-                title = { Text(text = "איפוס התקדמות") },
-                text = { Text(text = "בטוח שברצונך לאפס את כל ההתקדמות?") },
+                onDismissRequest = {
+                    showResetDialog = false
+                    resetCode = ""
+                    showWrongCode = false
+                },
+                title = {
+                    Text(
+                        text = "איפוס התקדמות",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(
+                            text = "הכנס קוד לאיפוס",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        OutlinedTextField(
+                            value = resetCode,
+                            onValueChange = {
+                                resetCode = it.filter(Char::isDigit).take(4)
+                                showWrongCode = false
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(text = "הכנס קוד לאיפוס") },
+                            placeholder = { Text(text = "0000") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                            isError = showWrongCode
+                        )
+                        if (showWrongCode) {
+                            Text(
+                                text = "קוד שגוי",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+                },
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            weakWordsManager.resetAll()
-                            showResetConfirmation = false
+                            if (resetCode == RESET_CODE) {
+                                weakWordsManager.resetAll()
+                                showResetDialog = false
+                                resetCode = ""
+                                showWrongCode = false
+                            } else {
+                                showWrongCode = true
+                            }
                         }
                     ) {
-                        Text(text = "כן")
+                        Text(text = "אפס")
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showResetConfirmation = false }) {
-                        Text(text = "לא")
+                    TextButton(
+                        onClick = {
+                            showResetDialog = false
+                            resetCode = ""
+                            showWrongCode = false
+                        }
+                    ) {
+                        Text(text = "ביטול")
                     }
-                }
+                },
+                containerColor = MaterialTheme.colorScheme.surface,
+                titleContentColor = MaterialTheme.colorScheme.primary,
+                textContentColor = MaterialTheme.colorScheme.onSurface
             )
         }
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 20.dp)
-        ) {
-            TextButton(onClick = onBack) {
-                Text(text = "חזרה")
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "הגדרות",
-                style = MaterialTheme.typography.headlineMedium,
-                textAlign = TextAlign.Start,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "צלילים",
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.weight(1f)
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    modifier = Modifier.statusBarsPadding(),
+                    title = {
+                        Text(
+                            text = "הגדרות",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(
+                            onClick = onBack,
+                            modifier = Modifier.size(48.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "חזרה"
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background,
+                        titleContentColor = MaterialTheme.colorScheme.primary,
+                        navigationIconContentColor = MaterialTheme.colorScheme.primary
+                    )
                 )
-                Switch(
-                    checked = soundEnabled,
-                    onCheckedChange = {
-                        soundEnabled = it
-                        settingsManager.soundEnabled = it
+            },
+            containerColor = MaterialTheme.colorScheme.background
+        ) { innerPadding ->
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(24.dp),
+                        color = MaterialTheme.colorScheme.surface,
+                        tonalElevation = 2.dp,
+                        shadowElevation = 3.dp
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 18.dp, vertical = 10.dp)
+                        ) {
+                            SettingToggleRow(
+                                icon = "🔊",
+                                title = "צלילים",
+                                description = "השמעת צלילים בזמן המשחק",
+                                checked = soundEnabled,
+                                onCheckedChange = {
+                                    soundEnabled = it
+                                    settingsManager.soundEnabled = it
+                                }
+                            )
+
+                            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+
+                            SettingToggleRow(
+                                icon = "🧠",
+                                title = "מצב תרגול חכם",
+                                description = "מילים שטעית בהן יופיעו יותר",
+                                checked = smartPracticeEnabled,
+                                onCheckedChange = {
+                                    smartPracticeEnabled = it
+                                    settingsManager.smartPracticeEnabled = it
+                                }
+                            )
+                        }
                     }
-                )
-            }
-
-            HorizontalDivider()
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 16.dp)
-                ) {
-                    Text(
-                        text = "מצב תרגול חכם",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "מילים שטעית בהן יופיעו יותר",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                 }
-                Switch(
-                    checked = smartPracticeEnabled,
-                    onCheckedChange = {
-                        smartPracticeEnabled = it
-                        settingsManager.smartPracticeEnabled = it
+
+                item {
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .navigationBarsPadding(),
+                        shape = RoundedCornerShape(24.dp),
+                        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.35f),
+                        tonalElevation = 1.dp,
+                        shadowElevation = 2.dp
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 18.dp, vertical = 18.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(start = 16.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(
+                                    text = "איפוס התקדמות",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Start
+                                )
+                                Text(
+                                    text = "מוגן בקוד כדי למנוע איפוס בטעות",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            OutlinedButton(
+                                onClick = {
+                                    showResetDialog = true
+                                    resetCode = ""
+                                    showWrongCode = false
+                                },
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
+                            ) {
+                                Text(
+                                    text = "אפס",
+                                    color = MaterialTheme.colorScheme.error,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
                     }
-                )
-            }
-
-            HorizontalDivider()
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 20.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "איפוס התקדמות",
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.weight(1f)
-                )
-                OutlinedButton(
-                    onClick = { showResetConfirmation = true },
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
-                ) {
-                    Text(
-                        text = "אפס",
-                        color = MaterialTheme.colorScheme.error
-                    )
                 }
             }
-
-            HorizontalDivider()
         }
     }
 }
+
+@Composable
+private fun SettingToggleRow(
+    icon: String,
+    title: String,
+    description: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            modifier = Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = icon,
+                style = MaterialTheme.typography.headlineSmall
+            )
+            Spacer(modifier = Modifier.width(14.dp))
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange
+        )
+    }
+}
+
+private const val RESET_CODE = "0000"

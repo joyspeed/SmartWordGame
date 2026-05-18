@@ -1,5 +1,6 @@
 package com.smartwordgame.app.ui
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -26,6 +28,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -36,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -235,11 +239,35 @@ private fun GamePlayingContent(
                 } else {
                     MaterialTheme.colorScheme.error
                 }
+                val mascotFeedback = remember(
+                    state.questionIndex,
+                    state.answered,
+                    state.isCorrect,
+                    state.selectedIndex
+                ) {
+                    when {
+                        state.isCorrect == true -> listOf(
+                            "🐻 כל הכבוד!",
+                            "🐻 מעולה!",
+                            "🐻 נהדר!"
+                        ).random()
+                        state.selectedIndex == null -> "🐻 אופס, נגמר הזמן"
+                        else -> "🐻 בפעם הבאה!"
+                    }
+                }
 
                 Text(
                     text = feedbackText,
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.ExtraBold,
+                    color = feedbackColor,
+                    textAlign = TextAlign.Center
+                )
+
+                Text(
+                    text = mascotFeedback,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
                     color = feedbackColor,
                     textAlign = TextAlign.Center
                 )
@@ -270,11 +298,22 @@ private fun GameHud(
     state: GameState.Playing,
     onBack: () -> Unit
 ) {
-    val timerColor = if (state.timeRemaining <= 5) {
-        MaterialTheme.colorScheme.error
-    } else {
-        MaterialTheme.colorScheme.primary
-    }
+    var showExitConfirmation by remember { mutableStateOf(false) }
+    val errorRed = Color(0xFFEF5350)
+    val isUrgent = state.timeRemaining <= 3
+    val timerColor = if (isUrgent) errorRed else MaterialTheme.colorScheme.primary
+    val timerScale by animateFloatAsState(
+        targetValue = if (isUrgent) 1.15f else 1f,
+        animationSpec = if (isUrgent) {
+            infiniteRepeatable(
+                animation = tween(durationMillis = 600, easing = EaseInOut),
+                repeatMode = RepeatMode.Reverse
+            )
+        } else {
+            tween(durationMillis = 200)
+        },
+        label = "timerPulse"
+    )
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -294,7 +333,15 @@ private fun GameHud(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onBack) {
+                IconButton(
+                    onClick = {
+                        if (state.answered) {
+                            onBack()
+                        } else {
+                            showExitConfirmation = true
+                        }
+                    }
+                ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "חזרה",
@@ -304,6 +351,7 @@ private fun GameHud(
 
                 Text(
                     text = "${state.timeRemaining}",
+                    modifier = Modifier.scale(timerScale),
                     style = MaterialTheme.typography.displaySmall,
                     fontWeight = FontWeight.ExtraBold,
                     color = timerColor
@@ -324,6 +372,36 @@ private fun GameHud(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+    }
+
+    if (showExitConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showExitConfirmation = false },
+            title = {
+                Text(
+                    text = "לצאת מהמשחק?",
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(text = "ההתקדמות בסיבוב הנוכחי תאבד")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showExitConfirmation = false
+                        onBack()
+                    }
+                ) {
+                    Text(text = "כן, לצאת")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showExitConfirmation = false }) {
+                    Text(text = "להישאר")
+                }
+            }
+        )
     }
 }
 
@@ -362,10 +440,12 @@ private fun answerButtonColors(
 ): Pair<Color, Color> {
     val neutralContainer = MaterialTheme.colorScheme.secondaryContainer
     val neutralContent = MaterialTheme.colorScheme.onSecondaryContainer
-    val correctContainer = MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
-    val correctContent = MaterialTheme.colorScheme.primary
-    val wrongContainer = MaterialTheme.colorScheme.error.copy(alpha = 0.18f)
-    val wrongContent = MaterialTheme.colorScheme.error
+    val successGreen = Color(0xFF66BB6A)
+    val errorRed = Color(0xFFEF5350)
+    val correctContainer = successGreen.copy(alpha = 0.2f)
+    val correctContent = successGreen
+    val wrongContainer = errorRed.copy(alpha = 0.2f)
+    val wrongContent = errorRed
 
     if (!state.answered) {
         return neutralContainer to neutralContent
