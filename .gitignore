@@ -1,8 +1,10 @@
 # Built outputs
 /build/
 /app/build/
+/app/bin/
 /.gradle/
 /.kotlin/
+/.copilot-build/
 
 # Local config
 local.properties
@@ -10,7 +12,11 @@ local.properties
 # IDE
 /.idea/
 *.iml
+.vscode/
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Scripts
+*.py
