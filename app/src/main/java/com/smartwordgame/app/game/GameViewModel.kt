@@ -3,6 +3,7 @@ package com.smartwordgame.app.game
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.smartwordgame.app.data.ActivityTracker
 import com.smartwordgame.app.data.Question
 import com.smartwordgame.app.data.QuestionGenerator
 import com.smartwordgame.app.data.RoundConfig
@@ -22,6 +23,7 @@ class GameViewModel : ViewModel() {
     val gameState: StateFlow<GameState> = _gameState.asStateFlow()
 
     private var weakWordsManager: WeakWordsManager? = null
+    private var activityTracker: ActivityTracker? = null
     private var questions: List<Question> = emptyList()
     private var roundConfig: RoundConfig? = null
     private var currentQuestionIndex = 0
@@ -50,6 +52,7 @@ class GameViewModel : ViewModel() {
         roundJob = viewModelScope.launch {
             val words = withContext(Dispatchers.IO) { WordRepository.loadWords(appContext) }
             weakWordsManager = WeakWordsManager(appContext)
+            activityTracker = ActivityTracker(appContext)
             val weakScores = weakWordsManager?.getWeakWords().orEmpty()
             questions = QuestionGenerator.generateRound(
                 words = words,
@@ -81,6 +84,7 @@ class GameViewModel : ViewModel() {
             weakWordsManager?.incrementScore(state.question.correctItem.id)
             mistakes += state.question
         }
+        activityTracker?.recordAnswer(isCorrect)
 
         _gameState.value = state.copy(
             correctCount = correctCount,
@@ -172,6 +176,7 @@ class GameViewModel : ViewModel() {
                 remaining = latestState.timeRemaining - 1
                 if (remaining <= 0) {
                     weakWordsManager?.incrementScore(latestState.question.correctItem.id)
+                    activityTracker?.recordAnswer(false)
                     mistakes += latestState.question
                     _gameState.value = latestState.copy(
                         answered = true,

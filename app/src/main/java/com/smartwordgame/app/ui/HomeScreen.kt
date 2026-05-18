@@ -18,7 +18,11 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -54,7 +58,9 @@ import com.smartwordgame.app.data.RoundConfig
 fun HomeScreen(
     onStartGame: (RoundConfig) -> Unit,
     onNavigateToPractice: () -> Unit,
-    onNavigateToSettings: () -> Unit
+    onNavigateToSettings: () -> Unit,
+    onNavigateToDictionary: () -> Unit,
+    onNavigateToActivitySummary: () -> Unit
 ) {
     val context = LocalContext.current
     val preferences = remember(context) {
@@ -175,29 +181,44 @@ fun HomeScreen(
                     shadowElevation = 4.dp,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 10.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                            .padding(horizontal = 16.dp, vertical = 14.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        OutlinedButton(
-                            onClick = onNavigateToPractice,
-                            modifier = Modifier.heightIn(min = 48.dp),
-                            shape = RoundedCornerShape(18.dp)
-                        ) {
-                            Text(
-                                text = "מילים לתרגול",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
+                        Text(
+                            text = "עוד דברים שכיף לגלות",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        NavigationMenuButton(
+                            text = "מילים לתרגול",
+                            icon = Icons.Filled.List,
+                            onClick = onNavigateToPractice
+                        )
+
+                        NavigationMenuButton(
+                            text = "מילון מילים",
+                            icon = Icons.AutoMirrored.Filled.MenuBook,
+                            onClick = onNavigateToDictionary
+                        )
+
+                        NavigationMenuButton(
+                            text = "סיכום 30 ימים",
+                            icon = Icons.Filled.DateRange,
+                            onClick = onNavigateToActivitySummary
+                        )
 
                         IconButton(
                             onClick = onNavigateToSettings,
                             modifier = Modifier
-                                .size(52.dp)
+                                .align(Alignment.CenterHorizontally)
+                                .size(56.dp)
                                 .background(
                                     color = MaterialTheme.colorScheme.secondaryContainer,
                                     shape = CircleShape
@@ -207,12 +228,45 @@ fun HomeScreen(
                                 imageVector = Icons.Filled.Settings,
                                 contentDescription = "הגדרות",
                                 tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(28.dp)
+                                modifier = Modifier.size(30.dp)
                             )
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun NavigationMenuButton(
+    text: String,
+    icon: ImageVector,
+    onClick: () -> Unit
+) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 52.dp),
+        shape = RoundedCornerShape(18.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(22.dp)
+            )
+            Text(
+                text = text,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(start = 10.dp)
+            )
         }
     }
 }

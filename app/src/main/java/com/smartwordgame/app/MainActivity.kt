@@ -23,6 +23,8 @@ import com.smartwordgame.app.data.Difficulty
 import com.smartwordgame.app.data.Question
 import com.smartwordgame.app.data.RoundConfig
 import com.smartwordgame.app.game.GameViewModel
+import com.smartwordgame.app.ui.ActivitySummaryScreen
+import com.smartwordgame.app.ui.DictionaryScreen
 import com.smartwordgame.app.ui.GameScreen
 import com.smartwordgame.app.ui.HomeScreen
 import com.smartwordgame.app.ui.PracticeScreen
@@ -71,6 +73,12 @@ private fun SmartWordGameNavHost() {
                 },
                 onNavigateToSettings = {
                     navController.navigate(Screen.Settings.route)
+                },
+                onNavigateToDictionary = {
+                    navController.navigate(Screen.Dictionary.route)
+                },
+                onNavigateToActivitySummary = {
+                    navController.navigate(Screen.ActivitySummary.route)
                 }
             )
         }
@@ -153,6 +161,18 @@ private fun SmartWordGameNavHost() {
                 }
             )
         }
+
+        composable(Screen.Dictionary.route) {
+            DictionaryScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.ActivitySummary.route) {
+            ActivitySummaryScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
     }
 }
 
@@ -169,6 +189,8 @@ private sealed class Screen(val route: String) {
     data object Summary : Screen("summary")
     data object Practice : Screen("practice")
     data object Settings : Screen("settings")
+    data object Dictionary : Screen("dictionary")
+    data object ActivitySummary : Screen("activity_summary")
 }
 
 private val DEFAULT_ROUND_CONFIG = RoundConfig(
