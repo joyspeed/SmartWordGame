@@ -18,9 +18,9 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.Button
@@ -204,7 +204,7 @@ fun HomeScreen(
 
                         NavigationMenuButton(
                             text = "מילון מילים",
-                            icon = Icons.AutoMirrored.Filled.MenuBook,
+                            icon = Icons.Filled.Search,
                             onClick = onNavigateToDictionary
                         )
 
