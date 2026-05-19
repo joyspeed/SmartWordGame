@@ -53,11 +53,9 @@ class MainActivity : ComponentActivity() {
 
     private fun resetStatsIfVersionChanged() {
         val prefs = getSharedPreferences("app_meta", MODE_PRIVATE)
-        val lastVersion = prefs.getInt("last_version_code", -1)
-        val currentVersion = packageManager.getPackageInfo(packageName, 0).longVersionCode.toInt()
-        if (lastVersion != currentVersion) {
+        if (!prefs.getBoolean("stats_reset_v4", false)) {
             WeakWordsManager(this).resetAll()
-            prefs.edit().putInt("last_version_code", currentVersion).apply()
+            prefs.edit().putBoolean("stats_reset_v4", true).apply()
         }
     }
 }
