@@ -192,7 +192,6 @@ fun SettingsScreen(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .navigationBarsPadding()
                                 .padding(horizontal = 18.dp, vertical = 10.dp)
                         ) {
                             SettingToggleRow(

@@ -1,7 +1,6 @@
 package com.smartwordgame.app.ui
 
 import android.content.Context
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +12,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -21,13 +21,14 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -52,7 +53,6 @@ import androidx.compose.ui.unit.dp
 import com.smartwordgame.app.data.Difficulty
 import com.smartwordgame.app.data.RoundConfig
 import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -142,6 +142,7 @@ fun HomeScreen(
                 containerColor = MaterialTheme.colorScheme.background,
                 topBar = {
                     TopAppBar(
+                        modifier = Modifier.statusBarsPadding(),
                         title = {
                             Text(
                                 text = "משחק מילים",
@@ -178,41 +179,31 @@ fun HomeScreen(
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     SelectorSection(title = "כמה שאלות בסיבוב?") {
-                        Column(
+                        Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Text(
-                                text = "$selectedQuestionCount",
-                                style = MaterialTheme.typography.displaySmall,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Slider(
-                                value = when (selectedQuestionCount) {
-                                    10 -> 0f
-                                    20 -> 1f
-                                    else -> 2f
-                                },
-                                onValueChange = { value ->
-                                    selectedQuestionCount = when (value.roundToInt()) {
-                                        0 -> 10
-                                        1 -> 20
-                                        else -> 30
-                                    }
-                                },
-                                valueRange = 0f..2f,
-                                steps = 1,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text("10", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Text("20", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Text("30", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            listOf(10, 20, 30).forEach { count ->
+                                FilterChip(
+                                    selected = selectedQuestionCount == count,
+                                    onClick = { selectedQuestionCount = count },
+                                    label = {
+                                        Text(
+                                            text = "$count",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .heightIn(min = 48.dp),
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                )
                             }
                         }
                     }
@@ -299,12 +290,7 @@ private fun DifficultyOptionCard(
     val containerColor = if (selected) {
         MaterialTheme.colorScheme.tertiary.copy(alpha = 0.22f)
     } else {
-        MaterialTheme.colorScheme.surface
-    }
-    val borderColor = if (selected) {
-        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.7f)
-    } else {
-        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
     }
 
     Card(
@@ -314,7 +300,6 @@ private fun DifficultyOptionCard(
             .heightIn(min = 72.dp),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = containerColor),
-        border = BorderStroke(if (selected) 2.dp else 1.dp, borderColor),
         elevation = CardDefaults.cardElevation(defaultElevation = if (selected) 4.dp else 1.dp)
     ) {
         Row(

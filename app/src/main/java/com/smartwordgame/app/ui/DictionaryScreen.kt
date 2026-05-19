@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -80,6 +81,7 @@ fun DictionaryScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
+                    modifier = Modifier.statusBarsPadding(),
                     title = {
                         Text(
                             text = "מילון מילים",
@@ -117,8 +119,7 @@ fun DictionaryScreen(
                 item {
                     Surface(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .navigationBarsPadding(),
+                            .fillMaxWidth(),
                         color = MaterialTheme.colorScheme.surface,
                         shape = RoundedCornerShape(20.dp),
                         shadowElevation = 2.dp
