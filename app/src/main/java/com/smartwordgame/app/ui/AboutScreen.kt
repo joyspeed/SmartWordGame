@@ -24,8 +24,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -38,6 +40,10 @@ import androidx.compose.ui.unit.sp
 fun AboutScreen(
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
+    val versionName = remember {
+        context.packageManager.getPackageInfo(context.packageName, 0).versionName
+    }
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         Scaffold(
             topBar = {
@@ -109,7 +115,7 @@ fun AboutScreen(
                         )
 
                         Text(
-                            text = "גרסה 1.0",
+                            text = "גרסה $versionName",
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
