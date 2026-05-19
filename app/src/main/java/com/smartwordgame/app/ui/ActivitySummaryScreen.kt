@@ -175,23 +175,22 @@ private fun SummaryHeaderCard(
     totalCorrect: Int,
     accuracy: Int
 ) {
-    Card(
+    Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 4.dp,
+        tonalElevation = 2.dp
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 18.dp, vertical = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(horizontal = 20.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            SummaryLine(label = "סה\"כ שאלות", value = totalQuestions.toString())
-            SummaryLine(label = "תשובות נכונות", value = totalCorrect.toString())
-            SummaryLine(label = "דיוק כולל", value = "$accuracy%")
+            SummaryLine(label = "📝 סה\"כ שאלות", value = totalQuestions.toString())
+            SummaryLine(label = "✅ תשובות נכונות", value = totalCorrect.toString())
+            SummaryLine(label = "🎯 דיוק כולל", value = "$accuracy%")
         }
     }
 }
@@ -209,13 +208,13 @@ private fun SummaryLine(
         Text(
             text = label,
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.SemiBold
         )
         Text(
             text = value,
             style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.ExtraBold
         )
     }

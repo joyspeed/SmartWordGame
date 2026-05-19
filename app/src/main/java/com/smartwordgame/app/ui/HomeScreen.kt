@@ -11,18 +11,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
@@ -45,13 +41,17 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.smartwordgame.app.data.Difficulty
 import com.smartwordgame.app.data.RoundConfig
+import com.smartwordgame.app.ui.theme.Orange
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -145,7 +145,7 @@ fun HomeScreen(
                         modifier = Modifier.statusBarsPadding(),
                         title = {
                             Text(
-                                text = "משחק מילים",
+                                text = "🎮 משחק מילים",
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.ExtraBold
                             )
@@ -174,63 +174,84 @@ fun HomeScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding)
-                        .padding(horizontal = 20.dp, vertical = 24.dp)
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 20.dp, vertical = 16.dp)
                         .navigationBarsPadding(),
-                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
-                    SelectorSection(title = "כמה שאלות בסיבוב?") {
+                    // Mascot welcome
+                    Text(
+                        text = "🐻 בואו נלמד מילים חדשות!",
+                        modifier = Modifier.fillMaxWidth(),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.secondary,
+                        textAlign = TextAlign.Center
+                    )
+
+                    // Question count selector
+                    SelectorSection(title = "🔢 כמה שאלות בסיבוב?") {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             listOf(10, 20, 30).forEach { count ->
-                                FilterChip(
-                                    selected = selectedQuestionCount == count,
+                                val isSelected = selectedQuestionCount == count
+                                Surface(
                                     onClick = { selectedQuestionCount = count },
-                                    label = {
-                                        Text(
-                                            text = "$count",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    },
                                     modifier = Modifier
                                         .weight(1f)
-                                        .heightIn(min = 48.dp),
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                )
+                                        .heightIn(min = 52.dp),
+                                    shape = RoundedCornerShape(16.dp),
+                                    color = if (isSelected) Orange else MaterialTheme.colorScheme.surfaceVariant,
+                                    shadowElevation = if (isSelected) 4.dp else 1.dp,
+                                    tonalElevation = 0.dp
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(vertical = 12.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        Text(
+                                            text = "$count",
+                                            style = MaterialTheme.typography.titleLarge,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
 
-                    SelectorSection(title = "רמת קושי") {
-                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            DifficultyOptionCard(
+                    // Difficulty selector
+                    SelectorSection(title = "🎯 רמת קושי") {
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            DifficultyButton(
+                                emoji = "😊",
                                 title = "קל",
-                                subtitle = "(דקה לשאלה)",
+                                subtitle = "דקה לשאלה",
                                 selected = selectedDifficulty == Difficulty.EASY,
                                 onClick = { selectedDifficulty = Difficulty.EASY }
                             )
-                            DifficultyOptionCard(
+                            DifficultyButton(
+                                emoji = "🙂",
                                 title = "בינוני",
-                                subtitle = "(30 שניות לשאלה)",
+                                subtitle = "30 שניות לשאלה",
                                 selected = selectedDifficulty == Difficulty.MEDIUM,
                                 onClick = { selectedDifficulty = Difficulty.MEDIUM }
                             )
-                            DifficultyOptionCard(
+                            DifficultyButton(
+                                emoji = "😎",
                                 title = "קשה",
-                                subtitle = "(15 שניות לשאלה)",
+                                subtitle = "15 שניות לשאלה",
                                 selected = selectedDifficulty == Difficulty.HARD,
                                 onClick = { selectedDifficulty = Difficulty.HARD }
                             )
                         }
                     }
 
+                    // Start button
                     Button(
                         onClick = {
                             onStartGame(
@@ -243,21 +264,25 @@ fun HomeScreen(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .heightIn(min = 56.dp),
+                            .heightIn(min = 60.dp),
                         shape = RoundedCornerShape(24.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
+                            contentColor = Color.White
+                        ),
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 6.dp,
+                            pressedElevation = 2.dp
                         )
                     ) {
                         Text(
-                            text = "התחל",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
+                            text = "🎮 התחל!",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.ExtraBold
                         )
                     }
 
-                    Spacer(modifier = Modifier.weight(1f))
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
@@ -281,54 +306,46 @@ private fun SelectorSection(
 }
 
 @Composable
-private fun DifficultyOptionCard(
+private fun DifficultyButton(
+    emoji: String,
     title: String,
     subtitle: String,
     selected: Boolean,
     onClick: () -> Unit
 ) {
-    val containerColor = if (selected) {
-        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.22f)
-    } else {
-        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-    }
-
-    Card(
+    Surface(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 72.dp),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = containerColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (selected) 4.dp else 1.dp)
+            .heightIn(min = 64.dp),
+        shape = RoundedCornerShape(18.dp),
+        color = if (selected) Orange else MaterialTheme.colorScheme.surfaceVariant,
+        shadowElevation = if (selected) 6.dp else 1.dp,
+        tonalElevation = 0.dp
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 18.dp, vertical = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(horizontal = 18.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                text = emoji,
+                fontSize = 28.sp
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    fontWeight = FontWeight.ExtraBold,
+                    color = if (selected) Color.White else MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = if (selected) Color.White.copy(alpha = 0.85f) else MaterialTheme.colorScheme.onSurfaceVariant
                 )
-            }
-
-            if (selected) {
-                Surface(
-                    color = MaterialTheme.colorScheme.tertiary,
-                    shape = CircleShape,
-                    modifier = Modifier.size(18.dp)
-                ) {}
             }
         }
     }
