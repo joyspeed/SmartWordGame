@@ -459,7 +459,7 @@ Enable focused practice and quick review of difficult vocabulary.
 ### Actions
 
 - "תרגל מילים קשות" button: starts a round biased toward weak words
-- Reset: code-protected (requires entering "0000"), shows "קוד שגוי" in red on wrong code
+- Reset: code-protected (requires entering code), label shows "הכנס קוד" without revealing the actual code, shows "קוד שגוי" in red on wrong code
 - Empty state: mascot message "🐻 כל הכבוד! אין מילים לתרגול"
 
 ### UI
@@ -503,10 +503,26 @@ When user taps back during an active game (unanswered question):
 - Confirm: "כן, לצאת" → exits game
 - Dismiss: "להישאר" → stays in game
 
-### Timer Warning
+### Android System Back Button
 
-- When ≤3 seconds remain: timer text turns red with pulsing scale animation (1.0→1.15)
-- Optional tick sound in last 3 seconds (can be disabled)
+- Android system back button (hardware/gesture) also triggers the confirmation dialog during active play
+- Uses Jetpack Compose `BackHandler` to intercept system navigation
+- If question is already answered, back navigates directly without dialog
+
+### Timer Warning — Difficulty-Based Color Thresholds
+
+Timer color changes based on difficulty level:
+
+| Difficulty | Orange Threshold | Red Threshold |
+|---|---|---|
+| Easy (60s) | ≤30s | ≤15s |
+| Medium (30s) | ≤20s | ≤5s |
+| Hard (15s) | ≤10s | ≤5s |
+
+- Default timer color: primary blue
+- Orange: warning color `#FF9800`
+- Red: error color `#EF5350` with pulsing scale animation (1.0→1.15)
+- Tick sound plays in last 3 seconds (can be disabled via sound toggle)
 
 ### Answer Feedback Colors
 
@@ -577,12 +593,12 @@ All features must follow:
 ### Functional
 
 - App loads JSON successfully and validates content
-- Home screen allows selecting: questions per round (10, 20, 30) and difficulty (easy, medium, hard)
+- Home screen allows selecting: questions per round via Material Slider snapping to 10/20/30, and difficulty (easy, medium, hard) via cards with soft elevation
 - Navigation drawer with all menu items accessible via hamburger menu
 - Game runs with: 4 options per question, correct/incorrect feedback, timer behavior with timeout handling
 - Mascot feedback on correct/incorrect/timeout answers
-- Back confirmation dialog during active game
-- Timer pulse animation at ≤3 seconds
+- Back confirmation dialog during active game (both in-app arrow and Android system back button)
+- Timer color changes per difficulty: orange warning → red urgency with pulse animation
 - Persistent HUD showing progress
 - Summary screen shows: correct count, total questions, total time, list of incorrectly answered words with meanings
 - Words to Practice screen: shows global weak words with tiered indicators (🔥/⭐), code-protected reset
@@ -592,7 +608,8 @@ All features must follow:
 - Full dictionary browser shows all words with tiered weak word highlighting
 - Alphabetical sorting ignores niqqud throughout the app
 - About screen shows app info with mascot
-- Sound system with 3 correct variants and gentle incorrect sound
+- Sound system with 3 correct variants (4-note ascending melodies) and 3 incorrect variants (gentle 2-note descending)
+- Tick sound in final 3 seconds of timer
 
 ### UX
 
@@ -603,5 +620,7 @@ All features must follow:
 - Large text and kid-friendly UI
 - Sound toggle works
 - Text wraps properly for long explanations
-- Code-protected reset (requires "0000") in Settings and Practice screens
+- Code-protected reset in Settings and Practice screens (code hidden from UI, label shows "הכנס קוד")
+- Clean Material surfaces throughout: elevation over borders, spacing over separators
+- Difficulty cards use soft borders with elevation instead of heavy outlines
 - The experience feels like a game first, not a learning tool
