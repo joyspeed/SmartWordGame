@@ -30,12 +30,14 @@ import com.smartwordgame.app.ui.GameScreen
 import com.smartwordgame.app.ui.HomeScreen
 import com.smartwordgame.app.ui.PracticeScreen
 import com.smartwordgame.app.ui.SettingsScreen
+import com.smartwordgame.app.data.WeakWordsManager
 import com.smartwordgame.app.ui.SummaryScreen
 import com.smartwordgame.app.ui.theme.SmartWordGameTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        resetStatsIfVersionChanged()
         enableEdgeToEdge()
         setContent {
             SmartWordGameTheme {
@@ -46,6 +48,16 @@ class MainActivity : ComponentActivity() {
                     SmartWordGameNavHost()
                 }
             }
+        }
+    }
+
+    private fun resetStatsIfVersionChanged() {
+        val prefs = getSharedPreferences("app_meta", MODE_PRIVATE)
+        val lastVersion = prefs.getInt("last_version_code", -1)
+        val currentVersion = packageManager.getPackageInfo(packageName, 0).longVersionCode.toInt()
+        if (lastVersion != currentVersion) {
+            WeakWordsManager(this).resetAll()
+            prefs.edit().putInt("last_version_code", currentVersion).apply()
         }
     }
 }
