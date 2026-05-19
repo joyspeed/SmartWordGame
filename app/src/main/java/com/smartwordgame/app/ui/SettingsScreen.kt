@@ -46,7 +46,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.smartwordgame.app.data.SettingsManager
@@ -96,8 +95,8 @@ fun SettingsScreen(
                                 showWrongCode = false
                             },
                             modifier = Modifier.fillMaxWidth(),
-                            label = { Text(text = "הכנס קוד לאיפוס") },
-                            placeholder = { Text(text = "0000") },
+                            label = { Text(text = "הכנס קוד") },
+                            placeholder = { Text(text = "****") },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                             isError = showWrongCode
@@ -193,6 +192,7 @@ fun SettingsScreen(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .navigationBarsPadding()
                                 .padding(horizontal = 18.dp, vertical = 10.dp)
                         ) {
                             SettingToggleRow(
@@ -218,59 +218,50 @@ fun SettingsScreen(
                                     settingsManager.smartPracticeEnabled = it
                                 }
                             )
-                        }
-                    }
-                }
 
-                item {
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .navigationBarsPadding(),
-                        shape = RoundedCornerShape(24.dp),
-                        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.35f),
-                        tonalElevation = 1.dp,
-                        shadowElevation = 2.dp
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 18.dp, vertical = 18.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(
+                            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+
+                            Row(
                                 modifier = Modifier
-                                    .weight(1f)
-                                    .padding(start = 16.dp),
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                                    .fillMaxWidth()
+                                    .padding(vertical = 12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = "איפוס התקדמות",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontWeight = FontWeight.Bold,
-                                    textAlign = TextAlign.Start
-                                )
-                                Text(
-                                    text = "מוגן בקוד כדי למנוע איפוס בטעות",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            OutlinedButton(
-                                onClick = {
-                                    showResetDialog = true
-                                    resetCode = ""
-                                    showWrongCode = false
-                                },
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
-                            ) {
-                                Text(
-                                    text = "אפס",
-                                    color = MaterialTheme.colorScheme.error,
-                                    fontWeight = FontWeight.Bold
-                                )
+                                Row(
+                                    modifier = Modifier.weight(1f),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(text = "🗑️", style = MaterialTheme.typography.headlineSmall)
+                                    Spacer(modifier = Modifier.width(14.dp))
+                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        Text(
+                                            text = "איפוס התקדמות",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            text = "מוגן בקוד",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                                OutlinedButton(
+                                    onClick = {
+                                        showResetDialog = true
+                                        resetCode = ""
+                                        showWrongCode = false
+                                    },
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
+                                ) {
+                                    Text(
+                                        text = "אפס",
+                                        color = MaterialTheme.colorScheme.error,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
                             }
                         }
                     }

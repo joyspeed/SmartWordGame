@@ -12,24 +12,24 @@ class SoundManager(var soundEnabled: Boolean = true) {
 
     fun playCorrect() {
         val variant = CORRECT_TONE_VARIANTS.random(Random.Default)
-        playSequence(tones = variant)
+        playSequence(
+            tones = variant.tones,
+            durationMs = variant.durationMs,
+            delayMs = variant.delayMs
+        )
     }
 
     fun playIncorrect() {
+        val variant = INCORRECT_TONE_VARIANTS.random(Random.Default)
         playSequence(
-            tones = listOf(
-                ToneGenerator.TONE_DTMF_7,
-                ToneGenerator.TONE_DTMF_3
-            ),
-            durationMs = GENTLE_TONE_DURATION_MS,
-            delayMs = GENTLE_TONE_DELAY_MS
+            tones = variant.tones,
+            durationMs = variant.durationMs,
+            delayMs = variant.delayMs
         )
     }
 
     fun playTick() {
         if (!soundEnabled) return
-
-        handler.removeCallbacksAndMessages(null)
         toneGenerator.startTone(ToneGenerator.TONE_PROP_BEEP, TICK_DURATION_MS)
     }
 
@@ -40,8 +40,8 @@ class SoundManager(var soundEnabled: Boolean = true) {
 
     private fun playSequence(
         tones: List<Int>,
-        durationMs: Int = DEFAULT_TONE_DURATION_MS,
-        delayMs: Long = DEFAULT_TONE_DELAY_MS
+        durationMs: Int,
+        delayMs: Long
     ) {
         if (!soundEnabled) return
 
@@ -54,28 +54,74 @@ class SoundManager(var soundEnabled: Boolean = true) {
         }
     }
 
-    private companion object {
-        const val DEFAULT_TONE_DURATION_MS = 120
-        const val DEFAULT_TONE_DELAY_MS = 140L
-        const val GENTLE_TONE_DURATION_MS = 150
-        const val GENTLE_TONE_DELAY_MS = 180L
-        const val TICK_DURATION_MS = 80
+    private data class ToneVariant(
+        val tones: List<Int>,
+        val durationMs: Int,
+        val delayMs: Long
+    )
 
+    private companion object {
+        const val TICK_DURATION_MS = 60
+
+        // Cheerful ascending melodies — longer, more rewarding
         val CORRECT_TONE_VARIANTS = listOf(
-            listOf(
-                ToneGenerator.TONE_DTMF_5,
-                ToneGenerator.TONE_DTMF_7,
-                ToneGenerator.TONE_DTMF_9
+            ToneVariant(
+                tones = listOf(
+                    ToneGenerator.TONE_DTMF_1,
+                    ToneGenerator.TONE_DTMF_3,
+                    ToneGenerator.TONE_DTMF_5,
+                    ToneGenerator.TONE_DTMF_9
+                ),
+                durationMs = 150,
+                delayMs = 160L
             ),
-            listOf(
-                ToneGenerator.TONE_DTMF_1,
-                ToneGenerator.TONE_DTMF_3,
-                ToneGenerator.TONE_DTMF_6
+            ToneVariant(
+                tones = listOf(
+                    ToneGenerator.TONE_DTMF_4,
+                    ToneGenerator.TONE_DTMF_7,
+                    ToneGenerator.TONE_DTMF_9,
+                    ToneGenerator.TONE_DTMF_0
+                ),
+                durationMs = 140,
+                delayMs = 150L
             ),
-            listOf(
-                ToneGenerator.TONE_DTMF_4,
-                ToneGenerator.TONE_DTMF_8,
-                ToneGenerator.TONE_DTMF_0
+            ToneVariant(
+                tones = listOf(
+                    ToneGenerator.TONE_DTMF_2,
+                    ToneGenerator.TONE_DTMF_5,
+                    ToneGenerator.TONE_DTMF_8,
+                    ToneGenerator.TONE_DTMF_0
+                ),
+                durationMs = 130,
+                delayMs = 145L
+            )
+        )
+
+        // Gentle descending "oops" — soft, not scary
+        val INCORRECT_TONE_VARIANTS = listOf(
+            ToneVariant(
+                tones = listOf(
+                    ToneGenerator.TONE_DTMF_8,
+                    ToneGenerator.TONE_DTMF_5
+                ),
+                durationMs = 180,
+                delayMs = 200L
+            ),
+            ToneVariant(
+                tones = listOf(
+                    ToneGenerator.TONE_DTMF_7,
+                    ToneGenerator.TONE_DTMF_4
+                ),
+                durationMs = 170,
+                delayMs = 190L
+            ),
+            ToneVariant(
+                tones = listOf(
+                    ToneGenerator.TONE_DTMF_9,
+                    ToneGenerator.TONE_DTMF_6
+                ),
+                durationMs = 175,
+                delayMs = 195L
             )
         )
     }

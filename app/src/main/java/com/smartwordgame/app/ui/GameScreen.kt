@@ -1,5 +1,6 @@
 package com.smartwordgame.app.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -102,8 +103,12 @@ fun GameScreen(
             showPauseOverlay = true
             hasEnteredBackground = false
         }
-        // Play sounds on answer
+
         val playingState = state as? GameState.Playing
+        if (playingState != null && !playingState.answered && playingState.timeRemaining <= 3 && playingState.timeRemaining > 0) {
+            soundManager.playTick()
+        }
+
         if (playingState?.answered == true) {
             if (playingState.isCorrect == true) {
                 soundManager.playCorrect()
@@ -167,12 +172,23 @@ private fun GamePlayingContent(
     onNextClick: () -> Unit,
     onBack: () -> Unit
 ) {
+    var showExitDialog by remember { mutableStateOf(false) }
+    val onBackRequest: () -> Unit = {
+        if (state.answered) {
+            onBack()
+        } else {
+            showExitDialog = true
+        }
+    }
+
+    BackHandler(onBack = onBackRequest)
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
         GameHud(
             state = state,
-            onBack = onBack
+            onBackRequest = onBackRequest
         )
 
         Column(
@@ -291,17 +307,59 @@ private fun GamePlayingContent(
             }
         }
     }
+
+    if (showExitDialog) {
+        AlertDialog(
+            onDismissRequest = { showExitDialog = false },
+            title = {
+                Text(
+                    text = "לצאת מהמשחק?",
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(text = "ההתקדמות בסיבוב הנוכחי תאבד")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showExitDialog = false
+                        onBack()
+                    }
+                ) {
+                    Text(text = "כן, לצאת")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showExitDialog = false }) {
+                    Text(text = "להישאר")
+                }
+            }
+        )
+    }
 }
 
 @Composable
 private fun GameHud(
     state: GameState.Playing,
-    onBack: () -> Unit
+    onBackRequest: () -> Unit
 ) {
-    var showExitConfirmation by remember { mutableStateOf(false) }
-    val errorRed = Color(0xFFEF5350)
-    val isUrgent = state.timeRemaining <= 3
-    val timerColor = if (isUrgent) errorRed else MaterialTheme.colorScheme.primary
+    val orangeThreshold = when (state.totalSeconds) {
+        60 -> 30
+        30 -> 20
+        else -> 10
+    }
+    val redThreshold = when (state.totalSeconds) {
+        60 -> 15
+        30 -> 5
+        else -> 5
+    }
+    val isUrgent = state.timeRemaining <= redThreshold
+    val timerColor = when {
+        state.timeRemaining <= redThreshold -> Color(0xFFEF5350)
+        state.timeRemaining <= orangeThreshold -> Color(0xFFFF9800)
+        else -> MaterialTheme.colorScheme.primary
+    }
     val timerScale by animateFloatAsState(
         targetValue = if (isUrgent) 1.15f else 1f,
         animationSpec = if (isUrgent) {
@@ -333,15 +391,7 @@ private fun GameHud(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(
-                    onClick = {
-                        if (state.answered) {
-                            onBack()
-                        } else {
-                            showExitConfirmation = true
-                        }
-                    }
-                ) {
+                IconButton(onClick = onBackRequest) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "חזרה",
@@ -372,36 +422,6 @@ private fun GameHud(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-    }
-
-    if (showExitConfirmation) {
-        AlertDialog(
-            onDismissRequest = { showExitConfirmation = false },
-            title = {
-                Text(
-                    text = "לצאת מהמשחק?",
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            text = {
-                Text(text = "ההתקדמות בסיבוב הנוכחי תאבד")
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showExitConfirmation = false
-                        onBack()
-                    }
-                ) {
-                    Text(text = "כן, לצאת")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showExitConfirmation = false }) {
-                    Text(text = "להישאר")
-                }
-            }
-        )
     }
 }
 

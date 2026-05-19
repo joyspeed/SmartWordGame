@@ -119,9 +119,8 @@ fun DictionaryScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .navigationBarsPadding(),
-                        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f),
+                        color = MaterialTheme.colorScheme.surface,
                         shape = RoundedCornerShape(20.dp),
-                        tonalElevation = 2.dp,
                         shadowElevation = 2.dp
                     ) {
                         Column(

@@ -1,6 +1,6 @@
 package com.smartwordgame.app.ui
 
-import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -133,13 +133,9 @@ fun PracticeScreen(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(52.dp)
-                            .border(
-                                width = 1.dp,
-                                color = MaterialTheme.colorScheme.error,
-                                shape = RoundedCornerShape(16.dp)
-                            ),
-                        shape = RoundedCornerShape(16.dp)
+                            .height(52.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
                     ) {
                         Text(
                             text = "איפוס",
@@ -202,7 +198,7 @@ fun PracticeScreen(
                                 resetCodeError = false
                             },
                             modifier = Modifier.fillMaxWidth(),
-                            label = { Text("הכנס קוד: 0000") },
+                            label = { Text("הכנס קוד") },
                             singleLine = true,
                             isError = resetCodeError
                         )
