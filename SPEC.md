@@ -280,29 +280,56 @@ Questions chosen according to weights, preventing duplicates within the same rou
 
 ## 15. UI and Visual Design Guidelines
 
+### Color Palette
+
+- **Primary:** Sky Blue `#4FC3F7` — buttons, highlights, main actions
+- **Primary Dark:** Strong Blue `#0288D1` — app bar, selected states
+- **Secondary:** Orange `#FF9800` — CTAs, progress, emphasis
+- **Background:** Soft Cream `#FFF8E1` — main background
+- **Surface:** White `#FFFFFF` — cards, panels
+- **Text Primary:** Dark Gray `#263238` — main readable text
+- **Text Secondary:** Medium Gray `#546E7A` — less important text
+
+### Feedback Colors
+
+- **Success:** Green `#66BB6A` — friendly, not harsh
+- **Error:** Soft Red `#EF5350` — not scary
+- **Warning:** Yellow `#FFCA28` — timer low
+- **Info:** Light Blue `#29B6F6` — neutral hints
+
+### Fun Layer Accents (used sparingly in animations, icons, cards)
+
+- Purple: `#BA68C8`
+- Teal: `#4DB6AC`
+- Pink: `#F06292`
+
 ### Style
 
 - Bright palette with high contrast
-- Friendly rounded buttons
+- Friendly rounded buttons (16-24px radius)
 - Large typography
-- Simple icons
+- Simple icons and emoji-based indicators
+- Avoid very pale colors (hard to see), too many saturated colors at once, and red/green only signaling
 
 ### Components
 
 - Big tappable answers (minimum 48px height)
 - Clear selected state
 - Avoid clutter and long paragraphs
+- Material 3 components: Cards, FilterChips, SegmentedButtons, NavigationDrawer
 
 ### Animations
 
 - Quick, positive reinforcement animations
 - Keep them short and non-blocking
-- Do not cause motion sickness
+- Do not cause motion sickness, avoid aggressive shaking
+- Timer pulse animation (scale 1.0→1.15) when ≤3 seconds remain
 
 ### Sounds
 
-- Positive sound for correct
-- Gentle negative sound for incorrect/timeout
+- **Correct:** Short reward melody — 3 randomized variants (ascending tone sequences), ~0.8–1.5 seconds
+- **Incorrect:** Gentle "oops" — 2 descending tones, soft and not alarming
+- **Timer warning:** Optional soft tick in last 3 seconds
 - Volume toggle, default ON
 
 ---
@@ -317,20 +344,32 @@ Questions chosen according to weights, preventing duplicates within the same rou
 4. Words to Practice screen
 5. Full Dictionary screen
 6. 30-Day Activity Summary screen
-7. Settings screen (minimal)
+7. Settings screen
+8. About screen
 
-### Navigation Menu (from Home)
+### Navigation (Material Drawer)
 
-- מילים לתרגול (Words to Practice)
-- מילון מילים (Full Dictionary)
-- סיכום 30 ימים (30-Day Summary)
-- הגדרות (Settings)
+Side drawer accessible via hamburger menu (☰) in the TopAppBar:
 
-### Settings (MVP)
+- 🎮 משחק (Home / Game)
+- 💪 מילים קשות (Words to Practice)
+- 📚 מילון מילים (Full Dictionary)
+- 📊 סיכום 30 ימים (30-Day Summary)
+- ⚙️ הגדרות (Settings)
+- ℹ️ אודות (About)
 
-- Sound: On/Off
-- Smart practice: On/Off
-- Reset progress (weak word scores)
+### Navigation Behavior
+
+- Game opens by default
+- Menu is easy to access but not intrusive
+- Clear Hebrew labels and recognizable emoji icons
+- Avoid deep navigation hierarchies
+
+### Settings
+
+- 🔊 Sound: On/Off
+- 🧠 Smart practice: On/Off
+- Reset progress — code-protected (requires entering "0000" to prevent accidental child resets)
 
 ---
 
@@ -344,17 +383,21 @@ Provide a simple way to track consistency and improvement over time.
 
 - Display a daily breakdown for the last 30 days
 - For each day show: number of questions answered, number of correct answers
-- If no activity on a given day, display zero values clearly
+- **Only display days with activity** — skip empty days entirely
 
 ### Visualization
 
-- Simple and colorful bar chart or list view
-- Each day represented visually so trends are easy to understand
+- Colorful bar chart with accuracy-based coloring:
+  - Accuracy ≥ 80%: Green bar `#66BB6A` ✅
+  - Accuracy 50-79%: Orange bar `#FF9800` ⚠️
+  - Accuracy < 50%: Red bar `#EF5350` ❌
 - Child-friendly, not analytical or complex
+- Mascot 🐻 shown when no activity exists
 
 ### UI
 
-- Title: "סיכום 30 ימים אחרונים"
+- Title: "סיכום 30 הימים האחרונים"
+- Header card with totals: questions, correct answers, overall accuracy %
 - RTL layout, large clear numbers, minimal text
 
 ---
@@ -373,13 +416,17 @@ Expose all words in a simple, exploration-focused view, without quiz pressure.
 
 ### Highlighting Weak Words
 
-- Words with score > 0 visually distinguished
-- Different color, icon (star/warning), or background highlight
+Words with score > 0 visually distinguished using tiered indicators:
+- **Score 3:** 🔥 fire icon + red-tinted card background `#FFEBEE`
+- **Score 2:** ⭐⭐ stars + orange-tinted card `#FFF3E0`
+- **Score 1:** ⭐ star + light yellow card `#FFFDE7`
+- **Score 0:** Normal white surface
 
 ### Sorting Options
 
-- Default: alphabetical by Hebrew word
-- Optional toggle: sort by difficulty (highest score first)
+- Default: alphabetical by Hebrew word (**ignoring niqqud** for proper ordering)
+- Toggle: sort by difficulty (highest score first)
+- Uses segmented control: `[ א-ב ]` `[ לפי קושי ]`
 
 ### UI
 
@@ -398,26 +445,96 @@ Enable focused practice and quick review of difficult vocabulary.
 ### Requirements
 
 - Include only words with score > 0
-- Display: word (with ניקוד), meaning, difficulty indicator (1-3 stars)
+- Display: word (with ניקוד), meaning, difficulty indicator
+- Tiered difficulty cards:
+  - **Score 3:** 🔥 prefix + red-tinted card `#FFEBEE`
+  - **Score 2:** Orange-tinted card `#FFF3E0` + ⭐⭐
+  - **Score 1:** Light yellow card `#FFFDE7` + ⭐
 
 ### Sorting
 
 - Primary: highest difficulty score first
-- Secondary: alphabetical order
+- Secondary: alphabetical order (**ignoring niqqud**)
 
 ### Actions
 
 - "תרגל מילים קשות" button: starts a round biased toward weak words
-- Optional reset capability
+- Reset: code-protected (requires entering "0000"), shows "קוד שגוי" in red on wrong code
+- Empty state: mascot message "🐻 כל הכבוד! אין מילים לתרגול"
 
 ### UI
 
-- Title: "מילים קשות" / "מילים לתרגול"
+- Title: "מילים לתרגול"
 - Consistent with rest of app
 
 ---
 
-## 20. Edge Cases and Rules
+## 20. Mascot Integration
+
+### Purpose
+
+Add emotional connection and motivation through a friendly animal mascot.
+
+### Mascot: 🐻 Bear
+
+### Use Cases
+
+- **Correct answer:** Mascot celebrates — randomly shows "🐻 כל הכבוד!", "🐻 מעולה!", or "🐻 נהדר!"
+- **Wrong answer:** Mascot reacts gently — "🐻 בפעם הבאה!"
+- **Timeout:** "🐻 אופס, נגמר הזמן"
+- **Summary screen:** Mascot gives feedback based on accuracy
+- **Empty states:** Mascot shown with encouraging messages
+
+### Design Rules
+
+- Keep it simple and consistent
+- Do not over-animate
+- Avoid distraction during questions (mascot appears only in feedback)
+
+---
+
+## 21. Game Screen UX Improvements
+
+### Back Confirmation Dialog
+
+When user taps back during an active game (unanswered question):
+- Show dialog: "לצאת מהמשחק?"
+- Text: "ההתקדמות בסיבוב הנוכחי תאבד"
+- Confirm: "כן, לצאת" → exits game
+- Dismiss: "להישאר" → stays in game
+
+### Timer Warning
+
+- When ≤3 seconds remain: timer text turns red with pulsing scale animation (1.0→1.15)
+- Optional tick sound in last 3 seconds (can be disabled)
+
+### Answer Feedback Colors
+
+- Correct: SuccessGreen `#66BB6A` with 0.2 alpha container
+- Incorrect: ErrorRed `#EF5350` with 0.2 alpha container
+
+---
+
+## 22. About Screen
+
+- Title: "אודות"
+- Mascot: 🐻
+- App name: "משחק מילים חכם"
+- Version: "גרסה 1.0"
+- Description: "משחק לימוד מילים בעברית לילדים"
+- Footer: "נבנה באהבה 💙"
+
+---
+
+## 23. Hebrew Sorting (Niqqud Handling)
+
+All alphabetical sorting throughout the app strips niqqud (vowel marks) before comparing, using the `stripNiqqud()` utility function. This ensures proper Hebrew alphabetical order regardless of diacritical marks.
+
+Unicode range stripped: `U+0591` to `U+05C7`
+
+---
+
+## 24. Edge Cases and Rules
 
 ### Dataset Too Small
 
@@ -441,7 +558,7 @@ Enable focused practice and quick review of difficult vocabulary.
 
 ---
 
-## 21. Consistency Requirements
+## 25. Consistency Requirements
 
 All features must follow:
 
@@ -455,25 +572,36 @@ All features must follow:
 
 ---
 
-## 22. Acceptance Criteria (Definition of Done)
+## 26. Acceptance Criteria (Definition of Done)
 
 ### Functional
 
 - App loads JSON successfully and validates content
 - Home screen allows selecting: questions per round (10, 20, 30) and difficulty (easy, medium, hard)
+- Navigation drawer with all menu items accessible via hamburger menu
 - Game runs with: 4 options per question, correct/incorrect feedback, timer behavior with timeout handling
+- Mascot feedback on correct/incorrect/timeout answers
+- Back confirmation dialog during active game
+- Timer pulse animation at ≤3 seconds
 - Persistent HUD showing progress
 - Summary screen shows: correct count, total questions, total time, list of incorrectly answered words with meanings
-- Words to Practice screen: shows global weak words with meanings, sorting by score, scores update with clamp 0-3
+- Words to Practice screen: shows global weak words with tiered indicators (🔥/⭐), code-protected reset
 - Persistence across app restarts
 - Activity tracking records daily stats
-- 30-day summary displays daily breakdown
-- Full dictionary browser shows all words with weak word highlighting
+- 30-day summary displays active days only with accuracy-colored bars
+- Full dictionary browser shows all words with tiered weak word highlighting
+- Alphabetical sorting ignores niqqud throughout the app
+- About screen shows app info with mascot
+- Sound system with 3 correct variants and gentle incorrect sound
 
 ### UX
 
 - Everything is in Hebrew
 - RTL layout everywhere
+- Material 3 Navigation Drawer with emoji labels
+- New color palette: Sky Blue primary, Cream background, proper feedback colors
 - Large text and kid-friendly UI
 - Sound toggle works
 - Text wraps properly for long explanations
+- Code-protected reset (requires "0000") in Settings and Practice screens
+- The experience feels like a game first, not a learning tool
