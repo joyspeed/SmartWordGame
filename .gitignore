@@ -13,10 +13,21 @@ local.properties
 /.idea/
 *.iml
 .vscode/
+*.swp
+*~
 
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Scripts
+# Keystore (never commit real signing keys)
+*.jks
+*.keystore
+!gradle/wrapper/gradle-wrapper.jar
+
+# Crash logs
+crash-*.log
+
+# Temporary scripts
 *.py
